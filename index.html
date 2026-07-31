@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Выбор даты и формата корпоратива</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap");
+
+      body {
+        font-family: "Raydis", "Orbitron", sans-serif;
+        background-color: #120e1e;
+        color: #e0e0ff;
+        background-image: radial-gradient(
+            circle at 10% 10%,
+            rgba(65, 25, 90, 0.4) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 90% 90%,
+            rgba(15, 55, 80, 0.4) 0%,
+            transparent 40%
+          );
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+
+      .neon-title {
+        background: linear-gradient(90deg, #05d9e8, #ff2a6d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 15px rgba(255, 42, 109, 0.3));
+      }
+
+      .glass-panel {
+        background: linear-gradient(
+          145deg,
+          rgba(30, 25, 45, 0.7),
+          rgba(18, 15, 30, 0.9)
+        );
+        backdrop-filter: blur(16px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6),
+          inset 0 1px 2px rgba(255, 255, 255, 0.05);
+      }
+
+      .calendar-day {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(45, 40, 65, 0.3);
+        color: #a0a0c0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .calendar-day:hover {
+        background: rgba(65, 60, 95, 0.6);
+        box-shadow: 0 8px 20px rgba(5, 217, 232, 0.15);
+        color: #fff;
+        transform: translateY(-2px);
+      }
+      .calendar-day.selected {
+        background: linear-gradient(135deg, #ff2a6d, #d926f2);
+        color: white;
+        box-shadow: 0 10px 25px rgba(255, 42, 109, 0.4);
+        text-shadow: 0 0 5px #fff;
+        transform: translateY(-2px);
+      }
+
+      .weekend-dot {
+        background-color: #01ffc3;
+        box-shadow: 0 0 10px #01ffc3, 0 0 20px #01ffc3;
+      }
+
+      .activity-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: linear-gradient(
+          145deg,
+          rgba(40, 35, 60, 0.4),
+          rgba(25, 20, 40, 0.6)
+        );
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        color: #b0b0d0;
+      }
+      .activity-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(5, 217, 232, 0.1);
+        background: linear-gradient(
+          145deg,
+          rgba(50, 45, 75, 0.5),
+          rgba(30, 25, 50, 0.7)
+        );
+      }
+      .activity-card.selected {
+        background: linear-gradient(
+          145deg,
+          rgba(5, 217, 232, 0.15),
+          rgba(5, 217, 232, 0.05)
+        );
+        box-shadow: 0 15px 35px rgba(5, 217, 232, 0.2),
+          inset 0 0 20px rgba(5, 217, 232, 0.1);
+        transform: translateY(-3px);
+      }
+      .activity-card.selected .icon-box {
+        color: #05d9e8;
+        text-shadow: 0 0 15px #05d9e8;
+        box-shadow: inset 0 2px 10px rgba(5, 217, 232, 0.2);
+      }
+      .activity-card.selected .card-title {
+        color: #fff;
+        text-shadow: 0 0 8px rgba(5, 217, 232, 0.6);
+      }
+
+      .sub-panel {
+        background: rgba(10, 8, 15, 0.4);
+        box-shadow: inset 0 5px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .sub-option {
+        background: linear-gradient(
+          145deg,
+          rgba(55, 50, 80, 0.4),
+          rgba(35, 30, 55, 0.6)
+        );
+        color: #a0a0c0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+      }
+      .sub-option:hover {
+        color: #fff;
+        box-shadow: 0 6px 15px rgba(255, 42, 109, 0.2);
+        background: linear-gradient(
+          145deg,
+          rgba(70, 60, 100, 0.5),
+          rgba(45, 40, 70, 0.7)
+        );
+      }
+      .sub-option.active {
+        background: linear-gradient(135deg, #ff2a6d, #ff5e8e);
+        color: #fff;
+        box-shadow: 0 8px 25px rgba(255, 42, 109, 0.4);
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+      }
+
+      .btn-glow {
+        background: linear-gradient(45deg, #ff2a6d, #d926f2);
+        box-shadow: 0 10px 30px rgba(255, 42, 109, 0.3);
+        color: white;
+        transition: all 0.3s ease;
+      }
+      .btn-glow:hover {
+        box-shadow: 0 15px 40px rgba(255, 42, 109, 0.6);
+        transform: translateY(-3px);
+      }
+
+      .neon-input {
+        background: rgba(15, 12, 25, 0.6);
+        color: #fff;
+        box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+      }
+      .neon-input:focus {
+        outline: none;
+        background: rgba(20, 15, 35, 0.8);
+        box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.4),
+          0 0 20px rgba(5, 217, 232, 0.15);
+      }
+
+      .motivation-box {
+        background: linear-gradient(
+          145deg,
+          rgba(255, 42, 109, 0.12),
+          rgba(217, 38, 242, 0.06)
+        );
+        box-shadow: 0 10px 30px rgba(255, 42, 109, 0.12),
+          inset 0 0 25px rgba(255, 42, 109, 0.06);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .motivation-box:hover {
+        box-shadow: 0 15px 40px rgba(255, 42, 109, 0.25),
+          inset 0 0 30px rgba(255, 42, 109, 0.1);
+        transform: translateY(-2px);
+      }
+      #motivationText {
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      #motivationText.swapping {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      /* Адаптивное скрытие/раскрытие */
+      .wrapper-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    </style>
+  </head>
+  <body class="py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto glass-panel rounded-3xl relative">
+      <div
+        class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#05d9e8] to-transparent opacity-40 rounded-t-3xl"
+      ></div>
+
+      <div class="px-5 sm:px-6 py-8 sm:py-10 text-center relative">
+        <h1
+          class="text-3xl sm:text-4xl md:text-5xl font-black mb-2 sm:mb-3 neon-title tracking-wider uppercase leading-tight"
+        >
+          Августовский корпоратив
+        </h1>
+        <p
+          class="text-[#05d9e8] opacity-80 text-xs sm:text-sm md:text-base font-medium tracking-wide"
+        >
+          ИНИЦИАЛИЗАЦИЯ ПОБЕГА ОТ ДЕДЛАЙНОВ...
+        </p>
+      </div>
+
+      <div
+        class="h-px w-full bg-gradient-to-r from-transparent via-gray-600 to-transparent opacity-50"
+      ></div>
+
+      <div class="p-5 sm:p-8 space-y-8 sm:space-y-10">
+        <div>
+          <div class="flex justify-between items-center mb-4 sm:mb-5">
+            <h2
+              class="text-lg sm:text-xl font-bold text-white tracking-wide drop-shadow-md"
+            >
+              <i class="fa-regular fa-calendar-days text-[#05d9e8] mr-2"></i>
+              ДАТЫ НА АВГУСТ
+            </h2>
+            <span
+              class="text-[10px] sm:text-xs text-[#01ffc3] bg-[#01ffc3]/10 shadow-[0_0_10px_rgba(1,255,195,0.1)] px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg tracking-wide font-medium text-center leading-tight max-w-[100px] sm:max-w-none"
+              >ПТ-СБ ПОДСВЕЧЕНЫ</span
+            >
+          </div>
+
+          <div
+            class="rounded-2xl p-4 sm:p-5 bg-[#0a0812]/60 shadow-[inset_0_5px_15px_rgba(0,0,0,0.5)] overflow-x-auto"
+          >
+            <div
+              class="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[10px] sm:text-xs font-bold text-gray-500 mb-3 sm:mb-4 tracking-widest min-w-[240px]"
+            >
+              <div>ПН</div>
+              <div>ВТ</div>
+              <div>СР</div>
+              <div>ЧТ</div>
+              <div
+                class="text-[#05d9e8] drop-shadow-[0_0_5px_rgba(5,217,232,0.5)]"
+              >
+                ПТ
+              </div>
+              <div
+                class="text-[#05d9e8] drop-shadow-[0_0_5px_rgba(5,217,232,0.5)]"
+              >
+                СБ
+              </div>
+              <div>ВС</div>
+            </div>
+            <div
+              id="calendarGrid"
+              class="grid grid-cols-7 gap-1.5 sm:gap-3 min-w-[240px]"
+            ></div>
+          </div>
+        </div>
+
+        <div>
+          <h2
+            class="text-lg sm:text-xl font-bold text-white tracking-wide mb-4 sm:mb-5 drop-shadow-md"
+          >
+            <i class="fa-solid fa-crosshairs text-[#ff2a6d] mr-2"></i> ФОРМАТ
+            ОПЕРАЦИИ
+          </h2>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+            id="activitiesGrid"
+          >
+            <div class="wrapper-group">
+              <div
+                class="activity-card cursor-pointer rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4"
+                data-activity="Кальянная"
+              >
+                <div
+                  class="icon-box w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0d0a15] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0 transition-all"
+                >
+                  <i class="fa-solid fa-smoking text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                  <div
+                    class="card-title font-bold text-gray-200 tracking-wide text-sm sm:text-base"
+                  >
+                    КАЛЬЯННАЯ
+                  </div>
+                  <div
+                    class="text-[10px] sm:text-xs text-gray-400 mt-1 font-sans leading-tight"
+                  >
+                    Выдыхаем стресс и дедлайны
+                  </div>
+                </div>
+              </div>
+              <div
+                id="opts-Кальянная"
+                class="sub-panel hidden p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              >
+                <h3
+                  class="text-xs sm:text-sm font-bold text-[#05d9e8] mb-3 tracking-wide drop-shadow-md"
+                >
+                  > ПАРАМЕТРЫ:
+                </h3>
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Кальянная"
+                    data-pref="С приставкой"
+                  >
+                    С приставкой
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Кальянная"
+                    data-pref="С настолками"
+                  >
+                    С настолками
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Кальянная"
+                    data-pref="Меню"
+                  >
+                    Полноценное меню
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Кальянная"
+                    data-pref="VIP-комната"
+                  >
+                    VIP-комната
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="wrapper-group">
+              <div
+                class="activity-card cursor-pointer rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4"
+                data-activity="Бар/Паб"
+              >
+                <div
+                  class="icon-box w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0d0a15] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0 transition-all"
+                >
+                  <i class="fa-solid fa-beer-mug-empty text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                  <div
+                    class="card-title font-bold text-gray-200 tracking-wide text-sm sm:text-base"
+                  >
+                    БАР / ПАБ
+                  </div>
+                  <div
+                    class="text-[10px] sm:text-xs text-gray-400 mt-1 font-sans leading-tight"
+                  >
+                    Тимбилдинг через печень
+                  </div>
+                </div>
+              </div>
+              <div
+                id="opts-Бар/Паб"
+                class="sub-panel hidden p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              >
+                <h3
+                  class="text-xs sm:text-sm font-bold text-[#05d9e8] mb-3 tracking-wide drop-shadow-md"
+                >
+                  > АТМОСФЕРА:
+                </h3>
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Бар/Паб"
+                    data-pref="Крафт/Сидр"
+                  >
+                    Крафт / Сидр
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Бар/Паб"
+                    data-pref="Коктейльный"
+                  >
+                    Коктейльный
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Бар/Паб"
+                    data-pref="Гастропаб"
+                  >
+                    Гастропаб
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Бар/Паб"
+                    data-pref="С танцполом"
+                  >
+                    С танцполом
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="wrapper-group">
+              <div
+                class="activity-card cursor-pointer rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4"
+                data-activity="Квест-рум"
+              >
+                <div
+                  class="icon-box w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0d0a15] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0 transition-all"
+                >
+                  <i class="fa-solid fa-key text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                  <div
+                    class="card-title font-bold text-gray-200 tracking-wide text-sm sm:text-base"
+                  >
+                    КВЕСТ-РУМ
+                  </div>
+                  <div
+                    class="text-[10px] sm:text-xs text-gray-400 mt-1 font-sans leading-tight"
+                  >
+                    Сбегаем из опен-спейса
+                  </div>
+                </div>
+              </div>
+              <div
+                id="opts-Квест-рум"
+                class="sub-panel hidden p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              >
+                <h3
+                  class="text-xs sm:text-sm font-bold text-[#05d9e8] mb-3 tracking-wide drop-shadow-md"
+                >
+                  > ЖАНР:
+                </h3>
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Квест-рум"
+                    data-pref="Хоррор"
+                  >
+                    Хоррор
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Квест-рум"
+                    data-pref="Детектив"
+                  >
+                    Детектив
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Квест-рум"
+                    data-pref="Приключения"
+                  >
+                    Приключения
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Квест-рум"
+                    data-pref="Эскейп"
+                  >
+                    Эскейп-рум
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="wrapper-group">
+              <div
+                class="activity-card cursor-pointer rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4"
+                data-activity="Пейнтбол/Лазертаг"
+              >
+                <div
+                  class="icon-box w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0d0a15] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0 transition-all"
+                >
+                  <i class="fa-solid fa-gun text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                  <div
+                    class="card-title font-bold text-gray-200 tracking-wide text-sm sm:text-base"
+                  >
+                    ТАКТИКА
+                  </div>
+                  <div
+                    class="text-[10px] sm:text-xs text-gray-400 mt-1 font-sans leading-tight"
+                  >
+                    Легально стреляем в коллег
+                  </div>
+                </div>
+              </div>
+              <div
+                id="opts-Пейнтбол/Лазертаг"
+                class="sub-panel hidden p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              >
+                <h3
+                  class="text-xs sm:text-sm font-bold text-[#05d9e8] mb-3 tracking-wide drop-shadow-md"
+                >
+                  > ТИП И ПОЛИГОН:
+                </h3>
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Пейнтбол/Лазертаг"
+                    data-pref="Лазертаг"
+                  >
+                    Лазертаг
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Пейнтбол/Лазертаг"
+                    data-pref="Пейнтбол"
+                  >
+                    Пейнтбол
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Пейнтбол/Лазертаг"
+                    data-pref="Крытая"
+                  >
+                    Крытая арена
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Пейнтбол/Лазертаг"
+                    data-pref="Лес"
+                  >
+                    Открытый полигон
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="wrapper-group">
+              <div
+                class="activity-card cursor-pointer rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4"
+                data-activity="VR-Арена"
+              >
+                <div
+                  class="icon-box w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0d0a15] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0 transition-all"
+                >
+                  <i class="fa-solid fa-vr-cardboard text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                  <div
+                    class="card-title font-bold text-gray-200 tracking-wide text-sm sm:text-base"
+                  >
+                    VR АРЕНА
+                  </div>
+                  <div
+                    class="text-[10px] sm:text-xs text-gray-400 mt-1 font-sans leading-tight"
+                  >
+                    Метавселенная без начальства
+                  </div>
+                </div>
+              </div>
+              <div
+                id="opts-VR-Арена"
+                class="sub-panel hidden p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              >
+                <h3
+                  class="text-xs sm:text-sm font-bold text-[#05d9e8] mb-3 tracking-wide drop-shadow-md"
+                >
+                  > РЕЖИМ:
+                </h3>
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="VR-Арена"
+                    data-pref="PvP"
+                  >
+                    PvP Шутер
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="VR-Арена"
+                    data-pref="Кооп"
+                  >
+                    Кооператив (vs Боты)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="wrapper-group">
+              <div
+                class="activity-card cursor-pointer rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4"
+                data-activity="Природа/Шашлыки"
+              >
+                <div
+                  class="icon-box w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0d0a15] shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)] flex items-center justify-center shrink-0 transition-all"
+                >
+                  <i class="fa-solid fa-fire text-lg sm:text-xl"></i>
+                </div>
+                <div>
+                  <div
+                    class="card-title font-bold text-gray-200 tracking-wide text-sm sm:text-base"
+                  >
+                    ПРИРОДА
+                  </div>
+                  <div
+                    class="text-[10px] sm:text-xs text-gray-400 mt-1 font-sans leading-tight"
+                  >
+                    Шашлыки, комары и не о работе
+                  </div>
+                </div>
+              </div>
+              <div
+                id="opts-Природа/Шашлыки"
+                class="sub-panel hidden p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              >
+                <h3
+                  class="text-xs sm:text-sm font-bold text-[#05d9e8] mb-3 tracking-wide drop-shadow-md"
+                >
+                  > БАЗА:
+                </h3>
+                <div class="flex flex-wrap gap-2 sm:gap-3">
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Природа/Шашлыки"
+                    data-pref="Беседка"
+                  >
+                    Беседка в городе
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Природа/Шашлыки"
+                    data-pref="База"
+                  >
+                    База отдыха
+                  </button>
+                  <button
+                    type="button"
+                    class="sub-option px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium font-sans flex-auto text-center"
+                    data-parent="Природа/Шашлыки"
+                    data-pref="Коттедж"
+                  >
+                    Аренда коттеджа
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label
+            for="comments"
+            class="block text-xs sm:text-sm font-bold text-gray-300 mb-2 sm:mb-3 tracking-wide drop-shadow-md"
+            ><i class="fa-solid fa-terminal text-[10px] sm:text-xs mr-2"></i
+            >СВОЙ ВАРИАНТ ИЛИ КОММЕНТАРИЙ:</label
+          >
+          <textarea
+            id="comments"
+            rows="2"
+            placeholder="Например: 'Если будет караоке — я увольняюсь' или 'Пью только крафт'"
+            class="neon-input w-full px-4 sm:px-5 py-3 sm:py-4 rounded-2xl font-sans text-sm sm:text-base resize-none"
+          ></textarea>
+        </div>
+
+        <div
+          class="bg-[#05d9e8]/10 shadow-[0_4px_15px_rgba(5,217,232,0.05)] rounded-2xl p-3 sm:p-4 text-center cursor-pointer hover:bg-[#05d9e8]/20 transition-colors select-none active:scale-95 transform"
+          onclick="changeJoke()"
+          title="Кликни, чтобы сменить мудрость"
+        >
+          <p
+            class="text-[#05d9e8] text-xs sm:text-sm font-sans italic opacity-90 drop-shadow-md"
+            id="jokeText"
+          >
+            Загрузка корпоративной мудрости...
+          </p>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2
+              class="text-lg sm:text-xl font-bold text-white tracking-wide drop-shadow-md"
+            >
+              <i class="fa-solid fa-bolt text-[#ff2a6d] mr-2"></i>
+              МОТИВАЦИЯ ДЛЯ ДИДЖИТАЛА
+            </h2>
+            <span
+              class="text-[10px] sm:text-xs text-[#ff2a6d] bg-[#ff2a6d]/10 shadow-[0_0_10px_rgba(255,42,109,0.1)] px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg tracking-wide font-medium text-center leading-tight"
+              >ЖМИ ЕЩЁ</span
+            >
+          </div>
+
+          <div
+            class="motivation-box rounded-2xl p-5 sm:p-6 text-center cursor-pointer select-none active:scale-95 transform"
+            onclick="changeMotivation()"
+            title="Кликни, чтобы получить новую дозу"
+          >
+            <i
+              class="fa-solid fa-quote-left text-[#ff2a6d]/40 text-base sm:text-lg mb-2 sm:mb-3 block"
+            ></i>
+            <p
+              class="text-gray-100 text-sm sm:text-base font-sans font-medium leading-relaxed drop-shadow-md"
+              id="motivationText"
+            >
+              Загрузка боевого духа...
+            </p>
+            <p
+              class="text-[10px] sm:text-xs text-[#ff2a6d]/70 mt-3 sm:mt-4 tracking-widest font-bold"
+              id="motivationCounter"
+            >
+              &nbsp;
+            </p>
+          </div>
+        </div>
+
+        <button
+          id="submitBtn"
+          class="w-full btn-glow font-bold py-4 sm:py-5 px-6 sm:px-8 rounded-2xl flex justify-center items-center gap-2 sm:gap-3 text-base sm:text-lg tracking-widest mt-4 sm:mt-6"
+        >
+          <i class="fa-solid fa-satellite-dish"></i>
+          <span>ОТПРАВИТЬ</span>
+        </button>
+        <p
+          id="errorMsg"
+          class="text-[#ff2a6d] text-xs sm:text-sm font-bold text-center hidden mt-3 sm:mt-4 tracking-wide drop-shadow-[0_0_8px_rgba(255,42,109,0.8)]"
+        >
+          ОШИБКА: НЕОБХОДИМО ВЫБРАТЬ ДАТУ И ФОРМАТ.
+        </p>
+      </div>
+    </div>
+
+    <div
+      id="successModal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-panel rounded-3xl p-6 sm:p-10 max-w-sm w-full text-center shadow-[0_0_80px_rgba(1,255,195,0.15)] transform scale-90 opacity-0 transition-all duration-300"
+        id="modalContent"
+      >
+        <div
+          class="w-20 sm:w-24 h-20 sm:h-24 bg-gradient-to-br from-[#01ffc3]/20 to-transparent rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 text-[#01ffc3] shadow-[0_0_30px_rgba(1,255,195,0.3)]"
+        >
+          <i
+            class="fa-solid fa-check text-4xl sm:text-5xl drop-shadow-[0_0_10px_rgba(1,255,195,0.8)]"
+          ></i>
+        </div>
+        <h3
+          class="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3 tracking-widest drop-shadow-md"
+        >
+          ДАННЫЕ ПРИНЯТЫ
+        </h3>
+        <p
+          class="text-gray-400 text-sm sm:text-base mb-8 sm:mb-10 font-sans leading-relaxed"
+        >
+          Твой голос скрыт от HR и отправлен в базу. Начинай морально готовиться
+          (и физически тоже).
+        </p>
+        <button
+          onclick="closeModal()"
+          class="w-full bg-white/5 hover:bg-white/10 shadow-[0_4px_15px_rgba(0,0,0,0.3)] text-white font-bold py-3 sm:py-4 px-4 rounded-2xl transition-all tracking-wider text-sm sm:text-base"
+        >
+          ЗАКРЫТЬ ГЕШТАЛЬТ
+        </button>
+      </div>
+    </div>
+
+    <!-- Токен и chat_id лежат в отдельном файле config.js -->
+    <script src="config.js"></script>
+
+    <script>
+      /* ==================== МЕСЯЦ ==================== */
+      const YEAR = 2026;
+      const MONTH = 7; // 0 = январь, 7 = АВГУСТ
+      const MONTH_NAME = "августа";
+
+      /* ==================== ШУТКИ ==================== */
+      const jokes = [
+        "«Работа не волк, а вот корпоратив — это уже интереснее.»",
+        "«Главное правило: то, что было на корпоративе, в понедельник обсуждает весь офис.»",
+        "«Уровень стресса: жду письмо от HR о дате корпоратива.»",
+        "«Чем ближе пятница, тем добрее коллеги.»",
+        "«Идеальный корпоратив — это когда утром не стыдно смотреть в глаза коллегам (но это редкость).»",
+        "«Если ты не помнишь, как танцевал, значит тимбилдинг удался.»",
+        "«Ничто так не объединяет команду, как совместная ненависть к дедлайнам.»",
+        "«Спонсор этого мероприятия — таски, отложенные на потом.»"
+      ];
+
+      function changeJoke() {
+        const el = document.getElementById("jokeText");
+        let next = jokes[Math.floor(Math.random() * jokes.length)];
+        let guard = 0;
+        while (next === el.textContent.trim() && guard++ < 10) {
+          next = jokes[Math.floor(Math.random() * jokes.length)];
+        }
+        el.textContent = next;
+      }
+
+      /* ==================== МОТИВАЦИЯ ДЛЯ ДИДЖИТАЛА ==================== */
+      const motivations = [
+        "Пока конкуренты согласовывают стратегию — ты уже открутил тест и знаешь ответ.",
+        "CTR растёт у тех, кто выспался. Это единственная метрика без погрешности.",
+        "Не бывает провальных креативов. Бывают гипотезы, которые честно отработали.",
+        "«финал_final_2_ПРАВКИ_ЭТОТОЧНОПОСЛЕДНИЙ.psd» — вот он, настоящий карьерный рост.",
+        "Алгоритмы меняются каждый квартал. Ты — нет. В этом и есть сеньорность.",
+        "Если воронка не конвертит — переверни её и назови ретеншеном.",
+        "Один нормальный инсайт закрывает квартал лучше, чем сорок дашбордов.",
+        "Ты не прокрастинируешь. Ты прогреваешь аудиторию внутри себя.",
+        "Правки от клиента — это не правки. Это бриф с элементом неожиданности.",
+        "Любой график выглядит убедительно, если правильно выбрать масштаб оси Y.",
+        "Лучший performance недели — закрыть ноут в пятницу вовремя.",
+        "Охваты приходят и уходят. Команда, которая вывозит запуск, остаётся.",
+        "Каждый неудачный тест — это минус одна плохая идея в проде.",
+        "«Сделай как у конкурента, но по-другому» — и ты всё равно справишься.",
+        "Дедлайн был вчера? Значит сегодня ты официально работаешь в будущем.",
+        "Бюджет урезали, KPI подняли. Классика. Ты это уже проходил.",
+        "Тот, кто первым перестал спорить о шрифте, выиграл спринт.",
+        "Данные не врут. Врут те, кто выбирает, какие данные показать на созвоне.",
+        "Идеальный лендинг — это тот, который уже задеплоен.",
+        "Ты не «сгорел». У тебя просто перерасход внутреннего бюджета. Пополни его на корпоративе."
+      ];
+
+      let motivationIndex = -1;
+
+      function changeMotivation() {
+        const el = document.getElementById("motivationText");
+        const counter = document.getElementById("motivationCounter");
+
+        let next = Math.floor(Math.random() * motivations.length);
+        let guard = 0;
+        while (next === motivationIndex && guard++ < 10) {
+          next = Math.floor(Math.random() * motivations.length);
+        }
+        motivationIndex = next;
+
+        el.classList.add("swapping");
+        setTimeout(() => {
+          el.textContent = motivations[motivationIndex];
+          counter.textContent =
+            String(motivationIndex + 1).padStart(2, "0") +
+            " / " +
+            String(motivations.length).padStart(2, "0");
+          el.classList.remove("swapping");
+        }, 200);
+      }
+
+      /* ==================== СОСТОЯНИЕ ==================== */
+      let selectedDate = null;
+      let selectedActivity = null;
+      let selectedPref = null;
+
+      /* ==================== КАЛЕНДАРЬ ==================== */
+      function initCalendar() {
+        const grid = document.getElementById("calendarGrid");
+        grid.innerHTML = "";
+
+        const firstDay = new Date(YEAR, MONTH, 1).getDay(); // 0 = вс
+        const offset = (firstDay + 6) % 7; // сетка с понедельника
+        const daysInMonth = new Date(YEAR, MONTH + 1, 0).getDate();
+
+        for (let i = 0; i < offset; i++) {
+          grid.appendChild(document.createElement("div"));
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dow = new Date(YEAR, MONTH, day).getDay(); // 5 = пт, 6 = сб
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className =
+            "calendar-day relative w-full h-10 sm:h-14 flex items-center justify-center rounded-xl text-sm sm:text-base font-bold cursor-pointer font-sans";
+          btn.textContent = day;
+
+          if (dow === 5 || dow === 6) {
+            const dot = document.createElement("span");
+            dot.className =
+              "absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-1.5 h-1.5 sm:w-2 sm:h-2 weekend-dot rounded-full";
+            btn.appendChild(dot);
+          }
+
+          btn.addEventListener("click", () => toggleDate(btn, day));
+          grid.appendChild(btn);
+        }
+      }
+
+      function toggleDate(btn, day) {
+        const wasSelected = btn.classList.contains("selected");
+        document
+          .querySelectorAll(".calendar-day.selected")
+          .forEach((el) => el.classList.remove("selected"));
+
+        if (wasSelected) {
+          selectedDate = null;
+        } else {
+          btn.classList.add("selected");
+          selectedDate = day;
+        }
+        hideError();
+      }
+
+      /* ==================== ФОРМАТЫ ==================== */
+      function hideAllSubPanels() {
+        document
+          .querySelectorAll(".sub-panel")
+          .forEach((p) => p.classList.add("hidden"));
+      }
+
+      function initActivities() {
+        document.querySelectorAll(".activity-card").forEach((card) => {
+          card.addEventListener("click", () => {
+            const activity = card.dataset.activity;
+            const wasSelected = card.classList.contains("selected");
+
+            document
+              .querySelectorAll(".activity-card.selected")
+              .forEach((c) => c.classList.remove("selected"));
+            hideAllSubPanels();
+
+            if (wasSelected) {
+              selectedActivity = null;
+              selectedPref = null;
+              document
+                .querySelectorAll(".sub-option.active")
+                .forEach((b) => b.classList.remove("active"));
+            } else {
+              card.classList.add("selected");
+              selectedActivity = activity;
+              selectedPref = null;
+              document
+                .querySelectorAll(".sub-option.active")
+                .forEach((b) => b.classList.remove("active"));
+              const panel = document.getElementById("opts-" + activity);
+              if (panel) panel.classList.remove("hidden");
+            }
+            hideError();
+          });
+        });
+
+        document.querySelectorAll(".sub-option").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const parent = btn.dataset.parent;
+            const wasActive = btn.classList.contains("active");
+
+            document
+              .querySelectorAll('.sub-option[data-parent="' + parent + '"]')
+              .forEach((b) => b.classList.remove("active"));
+
+            if (wasActive) {
+              selectedPref = null;
+            } else {
+              btn.classList.add("active");
+              selectedPref = btn.dataset.pref;
+            }
+          });
+        });
+      }
+
+      /* ==================== ОТПРАВКА ==================== */
+      function hideError() {
+        document.getElementById("errorMsg").classList.add("hidden");
+      }
+
+      function showError() {
+        document.getElementById("errorMsg").classList.remove("hidden");
+      }
+
+      async function sendToTelegram() {
+        const comments = document.getElementById("comments").value.trim();
+
+        const lines = [
+          "<b>НОВЫЙ ГОЛОС ЗА КОРПОРАТИВ</b>",
+          "",
+          "Дата: <b>" + selectedDate + " " + MONTH_NAME + " " + YEAR + "</b>",
+          "Формат: <b>" + selectedActivity + "</b>",
+          "Уточнение: <b>" + (selectedPref || "не выбрано") + "</b>",
+          "Комментарий: " + (comments || "—")
+        ];
+
+        const endpoint =
+          "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage";
+
+        await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: lines.join("\n"),
+            parse_mode: "HTML"
+          })
+        });
+      }
+
+      /* ==================== МОДАЛКА ==================== */
+      function showModal() {
+        const modal = document.getElementById("successModal");
+        const content = document.getElementById("modalContent");
+        modal.classList.remove("hidden");
+        requestAnimationFrame(() => {
+          content.classList.remove("scale-90", "opacity-0");
+          content.classList.add("scale-100", "opacity-100");
+        });
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("successModal");
+        const content = document.getElementById("modalContent");
+        content.classList.add("scale-90", "opacity-0");
+        content.classList.remove("scale-100", "opacity-100");
+        setTimeout(() => modal.classList.add("hidden"), 300);
+      }
+
+      /* ==================== СТАРТ ==================== */
+      document.getElementById("submitBtn").addEventListener("click", async () => {
+        if (!selectedDate || !selectedActivity) {
+          showError();
+          return;
+        }
+        hideError();
+
+        const btn = document.getElementById("submitBtn");
+        const label = btn.querySelector("span");
+        const original = label.textContent;
+        btn.disabled = true;
+        label.textContent = "ОТПРАВКА...";
+
+        try {
+          await sendToTelegram();
+        } catch (e) {
+          console.error(e);
+        }
+
+        btn.disabled = false;
+        label.textContent = original;
+        showModal();
+      });
+
+      initCalendar();
+      initActivities();
+      changeJoke();
+      changeMotivation();
+    </script>
+  </body>
+</html>
