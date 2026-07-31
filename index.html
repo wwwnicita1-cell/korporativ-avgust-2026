@@ -278,6 +278,12 @@
           </h2>
 
           <div
+          <p
+            id="selectedActivitiesInfo"
+            class="text-[11px] sm:text-xs text-gray-400 font-sans mb-4 sm:mb-5 leading-relaxed"
+          ></p>
+
+          <div
             class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
             id="activitiesGrid"
           >
@@ -870,8 +876,8 @@
 
       /* ==================== СОСТОЯНИЕ ==================== */
       let selectedDates = [];
-      let selectedActivity = null;
-      let selectedPrefs = [];
+      let selectedActivities = [];
+      let prefsByActivity = {};
 
       /* ==================== КАЛЕНДАРЬ ==================== */
       function initCalendar() {
@@ -936,36 +942,32 @@
       }
 
       /* ==================== ФОРМАТЫ ==================== */
-      function hideAllSubPanels() {
-        document
-          .querySelectorAll(".sub-panel")
-          .forEach((p) => p.classList.add("hidden"));
-      }
-
       function initActivities() {
         document.querySelectorAll(".activity-card").forEach((card) => {
           card.addEventListener("click", () => {
             const activity = card.dataset.activity;
-            const wasSelected = card.classList.contains("selected");
+            const panel = document.getElementById("opts-" + activity);
 
-            document
-              .querySelectorAll(".activity-card.selected")
-              .forEach((c) => c.classList.remove("selected"));
-            hideAllSubPanels();
-
-            selectedPrefs = [];
-            document
-              .querySelectorAll(".sub-option.active")
-              .forEach((b) => b.classList.remove("active"));
-
-            if (wasSelected) {
-              selectedActivity = null;
+            if (card.classList.contains("selected")) {
+              // снимаем формат вместе с его уточнениями
+              card.classList.remove("selected");
+              selectedActivities = selectedActivities.filter(
+                (a) => a !== activity
+              );
+              delete prefsByActivity[activity];
+              if (panel) {
+                panel.classList.add("hidden");
+                panel
+                  .querySelectorAll(".sub-option.active")
+                  .forEach((b) => b.classList.remove("active"));
+              }
             } else {
               card.classList.add("selected");
-              selectedActivity = activity;
-              const panel = document.getElementById("opts-" + activity);
+              selectedActivities.push(activity);
               if (panel) panel.classList.remove("hidden");
             }
+
+            renderSelectedActivities();
             hideError();
           });
         });
@@ -973,15 +975,21 @@
         document.querySelectorAll(".sub-option").forEach((btn) => {
           btn.addEventListener("click", (e) => {
             e.stopPropagation();
+            const parent = btn.dataset.parent;
             const pref = btn.dataset.pref;
+
+            if (!prefsByActivity[parent]) prefsByActivity[parent] = [];
 
             if (btn.classList.contains("active")) {
               btn.classList.remove("active");
-              selectedPrefs = selectedPrefs.filter((p) => p !== pref);
+              prefsByActivity[parent] = prefsByActivity[parent].filter(
+                (p) => p !== pref
+              );
             } else {
               btn.classList.add("active");
-              selectedPrefs.push(pref);
+              prefsByActivity[parent].push(pref);
             }
+            renderSelectedActivities();
           });
         });
 
@@ -993,6 +1001,24 @@
           hint.textContent = "можно выбрать несколько";
           h.appendChild(hint);
         });
+      }
+
+      function renderSelectedActivities() {
+        const info = document.getElementById("selectedActivitiesInfo");
+        if (selectedActivities.length === 0) {
+          info.innerHTML =
+            '<span class="opacity-60">Форматы не выбраны — можно отметить сколько угодно</span>';
+          return;
+        }
+        const parts = selectedActivities.map((a) => {
+          const prefs = prefsByActivity[a] || [];
+          return prefs.length ? a + " (" + prefs.join(", ") + ")" : a;
+        });
+        info.innerHTML =
+          '<span class="text-[#05d9e8] font-bold">Выбрано ' +
+          selectedActivities.length +
+          "</span>: " +
+          parts.join(" · ");
       }
 
       /* ==================== ОТПРАВКА ==================== */
@@ -1007,6 +1033,13 @@
       async function sendToTelegram() {
         const comments = document.getElementById("comments").value.trim();
 
+        const formatLines = selectedActivities.map((a) => {
+          const prefs = prefsByActivity[a] || [];
+          return (
+            "• <b>" + a + "</b>" + (prefs.length ? " — " + prefs.join(", ") : "")
+          );
+        });
+
         const lines = [
           "<b>НОВЫЙ ГОЛОС ЗА КОРПОРАТИВ</b>",
           "",
@@ -1019,12 +1052,11 @@
             " " +
             YEAR +
             "</b>",
-          "Формат: <b>" + selectedActivity + "</b>",
-          "Уточнения: <b>" +
-            (selectedPrefs.length ? selectedPrefs.join(", ") : "не выбрано") +
-            "</b>",
-          "Комментарий: " + (comments || "—")
-        ];
+          "",
+          "Форматы (" + selectedActivities.length + "):"
+        ]
+          .concat(formatLines)
+          .concat(["", "Комментарий: " + (comments || "—")]);
 
         const endpoint =
           "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage";
@@ -1061,7 +1093,7 @@
 
       /* ==================== СТАРТ ==================== */
       document.getElementById("submitBtn").addEventListener("click", async () => {
-        if (selectedDates.length === 0 || !selectedActivity) {
+        if (selectedDates.length === 0 || selectedActivities.length === 0) {
           showError();
           return;
         }
@@ -1087,6 +1119,7 @@
       initCalendar();
       renderSelectedDates();
       initActivities();
+      renderSelectedActivities();
       changeJoke();
       changeMotivation();
     </script>
