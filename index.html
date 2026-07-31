@@ -262,6 +262,10 @@
               id="calendarGrid"
               class="grid grid-cols-7 gap-1.5 sm:gap-3 min-w-[240px]"
             ></div>
+            <p
+              id="selectedDatesInfo"
+              class="text-[11px] sm:text-xs text-gray-400 font-sans mt-4 sm:mt-5 text-center leading-relaxed"
+            ></p>
           </div>
         </div>
 
@@ -745,7 +749,7 @@
           id="errorMsg"
           class="text-[#ff2a6d] text-xs sm:text-sm font-bold text-center hidden mt-3 sm:mt-4 tracking-wide drop-shadow-[0_0_8px_rgba(255,42,109,0.8)]"
         >
-          ОШИБКА: НЕОБХОДИМО ВЫБРАТЬ ДАТУ И ФОРМАТ.
+          ОШИБКА: НУЖНА ХОТЯ БЫ ОДНА ДАТА И ФОРМАТ.
         </p>
       </div>
     </div>
@@ -865,7 +869,7 @@
       }
 
       /* ==================== СОСТОЯНИЕ ==================== */
-      let selectedDate = null;
+      let selectedDates = [];
       let selectedActivity = null;
       let selectedPref = null;
 
@@ -903,18 +907,32 @@
       }
 
       function toggleDate(btn, day) {
-        const wasSelected = btn.classList.contains("selected");
-        document
-          .querySelectorAll(".calendar-day.selected")
-          .forEach((el) => el.classList.remove("selected"));
-
-        if (wasSelected) {
-          selectedDate = null;
+        if (btn.classList.contains("selected")) {
+          btn.classList.remove("selected");
+          selectedDates = selectedDates.filter((d) => d !== day);
         } else {
           btn.classList.add("selected");
-          selectedDate = day;
+          selectedDates.push(day);
         }
+        selectedDates.sort((a, b) => a - b);
+        renderSelectedDates();
         hideError();
+      }
+
+      function renderSelectedDates() {
+        const info = document.getElementById("selectedDatesInfo");
+        if (selectedDates.length === 0) {
+          info.innerHTML =
+            '<span class="opacity-60">Даты не выбраны — можно отметить сколько угодно</span>';
+          return;
+        }
+        info.innerHTML =
+          '<span class="text-[#ff2a6d] font-bold">Выбрано ' +
+          selectedDates.length +
+          "</span>: " +
+          selectedDates.join(", ") +
+          " " +
+          MONTH_NAME;
       }
 
       /* ==================== ФОРМАТЫ ==================== */
@@ -990,7 +1008,15 @@
         const lines = [
           "<b>НОВЫЙ ГОЛОС ЗА КОРПОРАТИВ</b>",
           "",
-          "Дата: <b>" + selectedDate + " " + MONTH_NAME + " " + YEAR + "</b>",
+          "Даты (" +
+            selectedDates.length +
+            "): <b>" +
+            selectedDates.join(", ") +
+            " " +
+            MONTH_NAME +
+            " " +
+            YEAR +
+            "</b>",
           "Формат: <b>" + selectedActivity + "</b>",
           "Уточнение: <b>" + (selectedPref || "не выбрано") + "</b>",
           "Комментарий: " + (comments || "—")
@@ -1031,7 +1057,7 @@
 
       /* ==================== СТАРТ ==================== */
       document.getElementById("submitBtn").addEventListener("click", async () => {
-        if (!selectedDate || !selectedActivity) {
+        if (selectedDates.length === 0 || !selectedActivity) {
           showError();
           return;
         }
@@ -1055,6 +1081,7 @@
       });
 
       initCalendar();
+      renderSelectedDates();
       initActivities();
       changeJoke();
       changeMotivation();
