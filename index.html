@@ -871,7 +871,7 @@
       /* ==================== СОСТОЯНИЕ ==================== */
       let selectedDates = [];
       let selectedActivity = null;
-      let selectedPref = null;
+      let selectedPrefs = [];
 
       /* ==================== КАЛЕНДАРЬ ==================== */
       function initCalendar() {
@@ -953,19 +953,16 @@
               .forEach((c) => c.classList.remove("selected"));
             hideAllSubPanels();
 
+            selectedPrefs = [];
+            document
+              .querySelectorAll(".sub-option.active")
+              .forEach((b) => b.classList.remove("active"));
+
             if (wasSelected) {
               selectedActivity = null;
-              selectedPref = null;
-              document
-                .querySelectorAll(".sub-option.active")
-                .forEach((b) => b.classList.remove("active"));
             } else {
               card.classList.add("selected");
               selectedActivity = activity;
-              selectedPref = null;
-              document
-                .querySelectorAll(".sub-option.active")
-                .forEach((b) => b.classList.remove("active"));
               const panel = document.getElementById("opts-" + activity);
               if (panel) panel.classList.remove("hidden");
             }
@@ -976,20 +973,25 @@
         document.querySelectorAll(".sub-option").forEach((btn) => {
           btn.addEventListener("click", (e) => {
             e.stopPropagation();
-            const parent = btn.dataset.parent;
-            const wasActive = btn.classList.contains("active");
+            const pref = btn.dataset.pref;
 
-            document
-              .querySelectorAll('.sub-option[data-parent="' + parent + '"]')
-              .forEach((b) => b.classList.remove("active"));
-
-            if (wasActive) {
-              selectedPref = null;
+            if (btn.classList.contains("active")) {
+              btn.classList.remove("active");
+              selectedPrefs = selectedPrefs.filter((p) => p !== pref);
             } else {
               btn.classList.add("active");
-              selectedPref = btn.dataset.pref;
+              selectedPrefs.push(pref);
             }
           });
+        });
+
+        // подсказка "можно несколько" в каждой панели
+        document.querySelectorAll(".sub-panel h3").forEach((h) => {
+          const hint = document.createElement("span");
+          hint.className =
+            "block text-[10px] font-normal text-gray-500 mt-1 tracking-normal font-sans";
+          hint.textContent = "можно выбрать несколько";
+          h.appendChild(hint);
         });
       }
 
@@ -1018,7 +1020,9 @@
             YEAR +
             "</b>",
           "Формат: <b>" + selectedActivity + "</b>",
-          "Уточнение: <b>" + (selectedPref || "не выбрано") + "</b>",
+          "Уточнения: <b>" +
+            (selectedPrefs.length ? selectedPrefs.join(", ") : "не выбрано") +
+            "</b>",
           "Комментарий: " + (comments || "—")
         ];
 
